@@ -61,45 +61,33 @@ function New-CompletionResultTest
     return New-Object -TypeName System.Management.Automation.CompletionResult -ArgumentList ($CompletionText, $ListItemText, $CompletionResultType, $ToolTip.Trim())
 }
 
-
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName New-TBAppointment -ParameterName Categories -ScriptBlock {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-    
-    Get-TBCategories |
-    ForEach-Object -Process {  New-CompletionResultTest -CompletionText $_ -ToolTip $_ -ListItemText $_ -CompletionResultType ParameterValue }
-}
-
- 
-        
         if (!( $NamespaceFolderItemTitle )) {
             Write-Warning "Please configure the switch code in the ..\TimeBudget.psm1 file to include your 
             ComputerName.  I can't figure out why this is necesary."
         }
 
-write-warning -Message 'The Outlook module has been imported.'
-
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName New-TBAppointment -ParameterName Categories -ScriptBlock {
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName Categories -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     Get-TBCategories |
     ForEach-Object -Process {  New-CompletionResultTest -CompletionText $_ -ToolTip $_ -ListItemText $_ -CompletionResultType ParameterValue }
 }
 
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName New-TBAppointment -ParameterName End -ScriptBlock {
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName End -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     Get-TBDate |
-    ForEach-Object -Process {  New-CompletionResultTest -CompletionText ( Get-Date -Date $_ -Format 'ddd' )  -ToolTip $_  -ListItemText ( Get-Date -Date $_ -Format 'ddd HH:mm') -CompletionResultType ParameterValue -Verbose }
+    ForEach-Object -Process {  New-CompletionResultTest -CompletionText ( Get-Date -Date $_ -Format 'ddd HH:mm')  -ToolTip $_  -ListItemText ( Get-Date -Date $_ -Format 'ddd HH:mm') -CompletionResultType ParameterValue -Verbose }
 }
 
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment', 'New-TBDeadline') -ParameterName Start -ScriptBlock {
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName Start -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     Get-TBDate |
-    ForEach-Object -Process {  New-CompletionResultTest -CompletionText ( Get-Date -Date $_ -Format 'ddd HH:mm')  -ToolTip $_  -ListItemText ( Get-Date -Date $_ -Format 'ddd') -CompletionResultType ParameterValue -Verbose }
+    ForEach-Object -Process {  New-CompletionResultTest -CompletionText ( Get-Date -Date $_ -Format 'ddd HH:mm')  -ToolTip $_  -ListItemText ( Get-Date -Date $_ -Format 'ddd HH:mm') -CompletionResultType ParameterValue -Verbose }
 }
-
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment', 'New-TBDeadline') -ParameterName Categories -ScriptBlock {
+<#
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName Categories -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     $TimeBudgetCache | 
@@ -107,8 +95,8 @@ Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'N
     Where-Object { $_.Categories } |
     ForEach-Object -Process {  New-CompletionResultTest -CompletionText $_.Categories -ToolTip $_.Subject -ListItemText $_.Categories -CompletionResultType ParameterValue -Verbose }
 }
-
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment', 'New-TBDeadline') -ParameterName Subject -ScriptBlock {
+#>
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName Subject -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     $TimeBudgetCache | 
@@ -117,7 +105,7 @@ Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'N
     ForEach-Object -Process {  New-CompletionResultTest -CompletionText $_.Subject -ToolTip $_.Start -ListItemText $_.Subject -CompletionResultType ParameterValue -Verbose }
 }
 
-Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment', 'New-TBDeadline') -ParameterName Location -ScriptBlock {
+Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'New-TBAppointment','New-Appointment', 'New-TBDeadline') -ParameterName Location -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
     
     $TimeBudgetCache | 
@@ -125,3 +113,5 @@ Microsoft.PowerShell.Core\Register-ArgumentCompleter -Verbose -CommandName @( 'N
     Where-Object { $_.Location } |
     ForEach-Object -Process {  New-CompletionResultTest -CompletionText $_.Location -ToolTip $_.Subject -ListItemText $_.Location -CompletionResultType ParameterValue -Verbose }
 }
+
+write-warning -Message 'The Outlook module has been imported.'
