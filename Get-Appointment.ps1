@@ -19,6 +19,18 @@ function Get-Appointment
         [int]$Days 
     )
 
+
+    try
+    {
+        $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
+    }
+    catch
+    {
+        Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
+        Import-Module -Name TimeBudget -Force
+    } 
+   
+
     switch ($PSCmdlet.ParameterSetName) 
     { 
         'Start_End' 
@@ -40,8 +52,6 @@ function Get-Appointment
             break
         } 
     }
-
-    $outlook = New-Object -ComObject Outlook.Application
 
     # Ensure we are logged into a session
     $session = $outlook.Session

@@ -138,116 +138,107 @@ function New-TBAppointment
 
     )
 
-    begin {
+    try
+    {
+        $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
+    }
+    catch
+    {
+        Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
+        Import-Module -Name TimeBudget -Force
+    } 
+  
+    #The Appointment's final calendar folder is defined here.  We move it at the very end.
+    $CalendarComObject = $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders | Where-Object -FilterScript { $_.Name -ieq $Calendar }
+    $objAppointment = $CalendarComObject.Items.Add($olAppointmentItem)
+        
+    #Prep to capitalize the subject line
+    $TextInfo = (Get-Culture).TextInfo
 
-        if ( $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $True ) 
-        {
-            $DebugBoundParameters = New-Object -TypeName PsObject -Property $PSCmdlet.MyInvocation.BoundParameters
-         
-            Write-Verbose -Message $( $PSCmdlet.MyInvocation.BoundParameters).Keys
-        }
-
-        Write-Debug -Message "Start = $Start"
-        Write-Debug -Message "Duration = $Duration"
-        Write-Debug -Message "End      = $End"
-
-        #The Appointment's final calendar folder is defined here.  We move it at the very end.
-        $CalendarComObject = $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders | Where-Object -FilterScript { $_.Name -ieq $Calendar }
-        $objAppointment = $CalendarComObject.Items.Add($olAppointmentItem)
-
-        #  https://msdn.microsoft.com/en-us/library/office/bb208152%28v=office.12%29.aspx   (OlUserPropertyType Enumeration) enumberations are found here
-        $null = $objAppointment.UserProperties.Add('Deliverable', 1, $True, 1)
-        $null = $objAppointment.UserProperties.Add('Reference', 1, $True, 1)
-        $null = $objAppointment.UserProperties.Add('GUID',1,$True,1)
-        $null = $objAppointment.UserProperties.Add('Sorting Number',3,$True, 1) #https://msdn.microsoft.com/en-us/library/office/ff868872.aspx?f=255&MSPPError=-2147217396
+    #  https://msdn.microsoft.com/en-us/library/office/bb208152%28v=office.12%29.aspx   (OlUserPropertyType Enumeration) enumberations are found here
+    $null = $objAppointment.UserProperties.Add('Deliverable', 1, $True, 1)
+    $null = $objAppointment.UserProperties.Add('Reference', 1, $True, 1)
+    $null = $objAppointment.UserProperties.Add('GUID',1,$True,1)
+    $null = $objAppointment.UserProperties.Add('Sorting Number',3,$True, 1) #https://msdn.microsoft.com/en-us/library/office/ff868872.aspx?f=255&MSPPError=-2147217396
        
-        $objAppointment.UserProperties.Item('Deliverable').value = $Deliverable
-        $objAppointment.UserProperties.Item('Reference').value = $Reference
-        $objAppointment.UserProperties.Item('GUID').value      = $GUID
-        $objAppointment.UserProperties.Item('Sorting Number').Value = $SortingNumber
+    $objAppointment.UserProperties.Item('Deliverable').value = $Deliverable
+    $objAppointment.UserProperties.Item('Reference').value = $Reference
+    $objAppointment.UserProperties.Item('GUID').value      = $GUID
+    $objAppointment.UserProperties.Item('Sorting Number').Value = $SortingNumber
           
         
-        #$objAppointment = $Outlook.CreateItem($olAppointmentItem) 
-        $objAppointment.BusyStatus  = '0' 
-        $objAppointment.Subject     = $Subject
-        $objAppointment.Body        = $Body
-        $objAppointment.Location    = $Location
-        $objAppointment.Categories  = $Categories
+    #$objAppointment = $Outlook.CreateItem($olAppointmentItem) 
+    $objAppointment.BusyStatus  = '0' 
+    $objAppointment.Subject     = $TextInfo.ToTitleCase($Subject.ToLower())
+    $objAppointment.Body        = $Body
+    $objAppointment.Location    = $Location
+    $objAppointment.Categories  = $Categories
+ 
+    foreach ($Name in $Recipients ) 
+    {
+        $objAppointment.Recipients.Add($Name)
+        $objAppointment.MeetingStatus = '1'
+    }
         
+    $null = $objAppointment.Recipients.ResolveAll()
 
-        
-        
-        foreach ($Name in $Recipients ) 
+    if ( $ReminderMinutes ) 
+    {  
+        $objAppointment.ReminderSet = $True
+        $objAppointment.ReminderMinutesBeforeStart = $ReminderMinutes
+    }
+
+    switch ($PSCmdlet.ParameterSetName) 
+    { 
+        'End_Start'     
         {
-            $objAppointment.Recipients.Add($Name)
-            $objAppointment.MeetingStatus = '1'
-        }
-        
-        $null = $objAppointment.Recipients.ResolveAll()
-
-        if ( $ReminderMinutes ) {  
-            $objAppointment.ReminderSet = $True
-            $objAppointment.ReminderMinutesBeforeStart = $ReminderMinutes
-        }
-
-    } #begin
-    process {
-        switch ($PSCmdlet.ParameterSetName) 
-        { 
-            'End_Start'     
-            {
-                $objAppointment.Start = $Start
-                $objAppointment.End   = $End
+            $objAppointment.Start = $Start
+            $objAppointment.End   = $End
                 
-                break
-            } 
-            'End_Minutes'   
-            {
-                if ( $Minutes -lt 0 ) { $Start = $End.AddMinutes( $Minutes) }
-                if ( $Minutes -eq 0 ) { $Start = $End                       }
-                if ( $Minutes -gt 0 ) { $Start = $End.AddMinutes(-$Minutes) }
-
-                $objAppointment.Start = $Start
-                $objAppointment.End   = $End
-
-                break
-            }
-            'Start_Minutes' 
-            {
-                if ( $Minutes -lt 0 ) {$End = $Start.AddMinutes(-$Minutes)}
-                if ( $Minutes -eq 0 ) {$End = $Start}
-                if ( $Minutes -gt 0 ) {$End = $Start.AddMinutes($Minutes)}
-
-                $objAppointment.Start = $Start
-                $objAppointment.End   = $End
-
-                break
-            } 
-            'Start_AllDayEvent' 
-            {
-                $objAppointment.Start       = $Start
-                $objAppointment.AllDayEvent = $AllDayEvent
-
-                break
-            }
+            break
         } 
-    }
-    end {
-        $null = $objAppointment.Send()
-        $null = $objAppointment.Save()
+        'End_Minutes'   
+        {
+            if ( $Minutes -lt 0 ) { $Start = $End.AddMinutes( $Minutes) }
+            if ( $Minutes -eq 0 ) { $Start = $End                       }
+            if ( $Minutes -gt 0 ) { $Start = $End.AddMinutes(-$Minutes) }
 
+            $objAppointment.Start = $Start
+            $objAppointment.End   = $End
 
-        Write-Verbose -Message $objAppointment.Subject
-        Write-Verbose -Message $objAppointment.Start
-        Write-Verbose -Message $objAppointment.End
+            break
+        }
+        'Start_Minutes' 
+        {
+            if ( $Minutes -lt 0 ) {$End = $Start.AddMinutes(-$Minutes)}
+            if ( $Minutes -eq 0 ) {$End = $Start}
+            if ( $Minutes -gt 0 ) {$End = $Start.AddMinutes($Minutes)}
 
-        if ($ShowAppointment) 
-        {$objAppointment.Display($True)}
+            $objAppointment.Start = $Start
+            $objAppointment.End   = $End
 
-        Write-Verbose -Message $objAppointment.Subject
-        Write-Verbose -Message $objAppointment.Start
-        Write-Verbose -Message $objAppointment.End
-    }
+            break
+        } 
+        'Start_AllDayEvent' 
+        {
+            $objAppointment.Start       = $Start
+            $objAppointment.AllDayEvent = $AllDayEvent
+
+            break
+        }
+    } 
+
+   Write-Verbose -Message $($objAppointment |
+    Select-Object -Property Start, End, Duration, ReminderMinutes, AllDayEvent, Subject, Body, RequiredAttendees, Location, Categories |
+    Format-List |
+    Out-String )
+
+    $null = $objAppointment.Send()
+    $null = $objAppointment.Save()
+
+    if ($ShowAppointment) 
+    {$objAppointment.Display($True)}
 }
+
 
 

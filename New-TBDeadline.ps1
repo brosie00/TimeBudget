@@ -18,7 +18,6 @@ function New-TBDeadline
         $ReminderMinutes = 20 
         , 
        
-
         [Parameter(ValueFromPipelineByPropertyName = $True )]
         [string]
         $Subject = 'This is the Subject'
@@ -55,18 +54,14 @@ function New-TBDeadline
     )
 
 
-
-    if ( $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent -eq $True ) 
+    try
+    {$Namespace.Folders.Item($NamespaceFolderItemTitle).Folders}
+    catch
     {
-        $DebugBoundParameters = New-Object -TypeName PsObject -Property $PSCmdlet.MyInvocation.BoundParameters
-         
-        Write-Verbose -Message $( $PSCmdlet.MyInvocation.BoundParameters).Keys
-    }
-
-    Write-Debug -Message "Start = $Start"
-    Write-Debug -Message "Duration = $Duration"
-    Write-Debug -Message "End      = $End"
-
+        Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
+        Import-Module -Name TimeBudget -Force
+    } 
+ 
     $CalendarComObject = $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders | Where-Object -FilterScript { $_.Name -ieq $Calendar }
       
     $objAppointment = $CalendarComObject.Items.Add($olAppointmentItem)
@@ -86,7 +81,8 @@ function New-TBDeadline
         
     $null = $objAppointment.Recipients.ResolveAll()
 
-    if ( $ReminderMinutes ) {  
+    if ( $ReminderMinutes ) 
+{  
         $objAppointment.ReminderSet = $True
         $objAppointment.ReminderMinutesBeforeStart = $ReminderMinutes
     }
@@ -94,19 +90,17 @@ function New-TBDeadline
     $objAppointment.Start = $Start
     $objAppointment.End = $Start
 
-    $null = $objAppointment.Send()
+   Write-Verbose -Message $($objAppointment |
+    Select-Object -Property Start, End, Duration, ReminderMinutes, AllDayEvent, Subject, Body, RequiredAttendees, Location, Categories |
+    Format-List |
+    Out-String )
+ 
+     $null = $objAppointment.Send()
     $null = $objAppointment.Save()
 
-    Write-Verbose -Message $objAppointment.Subject
-    Write-Verbose -Message $objAppointment.Start
-    Write-Verbose -Message $objAppointment.End
 
     if ($ShowAppointment) 
     {$objAppointment.Display($True)}
-
-    Write-Verbose -Message $objAppointment.Subject
-    Write-Verbose -Message $objAppointment.Start
-    Write-Verbose -Message $objAppointment.End
 }
 
 
