@@ -1,4 +1,5 @@
-﻿function Get-TBAppointment 
+﻿#requires -Version 2 -Modules TimeBudget
+function Get-TBAppointment 
 {
     [cmdletbinding()]
     param ( 
@@ -18,9 +19,7 @@
 
 
     try
-    {
-        $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
-    }
+    {$Namespace.Folders.Item($NamespaceFolderItemTitle).Folders}
     catch
     {
         Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
@@ -46,34 +45,33 @@
 
             foreach ( $Item in  $apptItems.Restrict($Restriction) ) 
             {
-                Write-Verbose -Message 'About to create an object'
-                $obj = New-Object -TypeName PsObject -Property @{
-                    Calendar             = $SingleCalendar
-                    Start                = $Item.Start
-                    End                  = $Item.End
-                    Duration             = $Item.Duration
-                    Days                 = (New-TimeSpan -Start $Item.Start -End $Item.End).Days
-                    Weeks                = (New-TimeSpan -Start $Item.Start -End $Item.End).Days /7
-                    Subject              = $Item.Subject
-                    Body                 = $Item.Body
-                    ReminderSet          = $Item.ReminderSet
-                    Location             = $Item.Location
-                    Categories           = $Item.Categories
-                    CreationTime         = $Item.CreationTime
-                    LastModificationTime = $Item.LastModificationTime
-                    IsRecurring          = $Item.IsRecurring
-                    Deliverable          = $Item.UserProperties.Item('Deliverable').Value
-                    Reference            = $Item.UserProperties.Item('Reference').value
-                    GUID                 = $Item.UserProperties.Item('GUID').Value
-                    SortNumber           = $Item.UserProperties.Item('Sorting Number').Value
-                }#end Object 
-                Write-Verbose -Message $obj.Subject
-                $Appointments += $obj
-            }#end foreach Item in apptItems      
-        }#end foreach Category in Categories
-    }#end foreach SingleCalendar in Calendar
+                $Props = @{}
+                $Props.Calendar             = $SingleCalendar
+                $Props.Start                = $Item.Start
+                $Props.End                  = $Item.End
+                $Props.Duration             = $Item.Duration
+                $Props.Days                 = (New-TimeSpan -Start $Item.Start -End $Item.End).Days
+                $Props.Weeks                = (New-TimeSpan -Start $Item.Start -End $Item.End).Days /7
+                $Props.Subject              = $Item.Subject
+                $Props.Body                 = $Item.Body
+                $Props.ReminderSet          = $Item.ReminderSet
+                $Props.Location             = $Item.Location
+                $Props.Categories           = $Item.Categories
+                $Props.CreationTime         = $Item.CreationTime
+                $Props.LastModificationTime = $Item.LastModificationTime
+                $Props.IsRecurring          = $Item.IsRecurring
+                $Props.Deliverable          = $Item.UserProperties.Item('Deliverable').Value
+                $Props.Reference            = $Item.UserProperties.Item('Reference').value
+                $Props.GUID                 = $Item.UserProperties.Item('GUID').Value
+                $Props.SortNumber           = $Item.UserProperties.Item('Sorting Number').Value
+
+                New-Object -TypeName PsObject -Property $Props
+            } #end foreach ( item in apptItems )
+         
+            $Appointments += $obj
+        }#end foreach (Category in Categories)
+    }#end foreach (SingleCalendar in Calendar)
    
-    #    $Appointments = $Appointments | Sort-Object -Unique -Property 'EntryID'
     Write-Output -InputObject $Appointments
 }
 

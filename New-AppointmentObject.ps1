@@ -1,0 +1,6 @@
+﻿
+Function New-AppointmentObject {
+
+
+
+}
