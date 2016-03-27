@@ -1,4 +1,6 @@
-﻿#requires -Version 2 -Modules TimeBudget
+﻿
+
+
 function Get-TBAppointment 
 {
     [cmdletbinding()]
@@ -17,25 +19,25 @@ function Get-TBAppointment
 
     )
 
-
+    <#
     try
-    {$Namespace.Folders.Item($NamespaceFolderItemTitle).Folders}
+    {
+        $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
+    }
     catch
     {
         Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
         Import-Module -Name TimeBudget -Force
     } 
    
-
+   #>
 
     $Appointments = @() 
     
     foreach ( $SingleCalendar in $Calendar )# { $SingleCalendar }
     {
-        #$SingleCalendar = $Calendar
+
         Write-Debug -Message "Calendar: $SingleCalendar"
-        #$CalendarComObject = $Namespace.Folders.Item('1').Folders | Where-Object -FilterScript { $_.Name -ieq $SingleCalendar }
-        # see https://msdn.microsoft.com/en-us/magazine/dn189202.aspx for a discussion of navigating in the MAPI namespace
         $CalendarComObject = $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders.Item($SingleCalendar) 
  
         foreach ( $Category in $Categories  ) 
@@ -45,6 +47,7 @@ function Get-TBAppointment
 
             foreach ( $Item in  $apptItems.Restrict($Restriction) ) 
             {
+                
                 $Props = @{}
                 $Props.Calendar             = $SingleCalendar
                 $Props.Start                = $Item.Start
@@ -75,4 +78,4 @@ function Get-TBAppointment
     Write-Output -InputObject $Appointments
 }
 
-
+#>

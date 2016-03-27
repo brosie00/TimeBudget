@@ -1,6 +1,0 @@
-﻿
-Function New-AppointmentObject {
-
-
-
-}

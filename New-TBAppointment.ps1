@@ -1,4 +1,5 @@
-﻿#requires -Version 2
+﻿
+#requires -Version 2
 <#
         .Synopsis
         Builds an Outlook appointment or meeting from the powershell command line.
@@ -241,4 +242,4 @@ function New-TBAppointment
 }
 
 
-
+#>

@@ -1,11 +1,10 @@
-﻿#requires -Version 2
+﻿
+#requires -Version 2
 function Get-Appointment 
 {
     [cmdletbinding()]
     param ( 
-   
-        
-
+ 
         [Parameter(ParameterSetName = 'Start_End')]
         [Parameter(ParameterSetName = 'Days_Start')]
         [datetime]$StartDate = (Get-Date)
@@ -19,15 +18,15 @@ function Get-Appointment
         [int]$Days 
     )
 
-
     try
-    {$Namespace.Folders.Item($NamespaceFolderItemTitle).Folders}
+    {
+        $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
+    }
     catch
     {
         Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
         Import-Module -Name TimeBudget -Force
     } 
-   
 
     switch ($PSCmdlet.ParameterSetName) 
     { 
@@ -51,17 +50,13 @@ function Get-Appointment
         } 
     }
 
-    # Ensure we are logged into a session
-    $session = $outlook.Session
-    $session.Logon()
+   
 
-    $olFolderCalendar = 9
-    $apptItems = $session.GetDefaultFolder($olFolderCalendar).Items
     $apptItems.Sort('[Start]')
     $apptItems.IncludeRecurrences = $true
 
     $restriction = "[End] >= '{0}' AND [Start] <= '{1}'" -f $rangeStart.ToString('g'), $rangeEnd.ToString('g')
-    Write-Debug -Message $restriction
+
     $Array = @()
     foreach($item in $apptItems.Restrict($restriction))
     {  
@@ -84,8 +79,9 @@ function Get-Appointment
         $Obj = New-Object -TypeName PsObject -Property $Props
     }#foreach (item in apptitems)
 
-
     $Array += $Obj 
-}
+
 Write-Output -InputObject $Array
-#$outlook = $session = $null
+
+}
+#>
