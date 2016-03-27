@@ -1,14 +1,13 @@
-﻿#requires -Version 2
+﻿
+#requires -Version 2
 function Get-Appointment 
 {
     [cmdletbinding()]
     param ( 
-   
-        
-
+ 
         [Parameter(ParameterSetName = 'Start_End')]
-                [Parameter(ParameterSetName = 'Days_Start')]
-                [datetime]$StartDate = (Get-Date)
+        [Parameter(ParameterSetName = 'Days_Start')]
+        [datetime]$StartDate = (Get-Date)
         ,
         [Parameter(ParameterSetName = 'Start_End')]
         [Parameter(ParameterSetName = 'Days_End')]
@@ -19,7 +18,6 @@ function Get-Appointment
         [int]$Days 
     )
 
-
     try
     {
         $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders
@@ -29,7 +27,6 @@ function Get-Appointment
         Write-Host -ForegroundColor Red -Object 'The Com Object with Microsoft Outlook has broken. We will attempt to reimport the Module'
         Import-Module -Name TimeBudget -Force
     } 
-   
 
     switch ($PSCmdlet.ParameterSetName) 
     { 
@@ -53,38 +50,38 @@ function Get-Appointment
         } 
     }
 
-    # Ensure we are logged into a session
-    $session = $outlook.Session
-    $session.Logon()
+   
 
-    $olFolderCalendar = 9
-    $apptItems = $session.GetDefaultFolder($olFolderCalendar).Items
     $apptItems.Sort('[Start]')
     $apptItems.IncludeRecurrences = $true
 
     $restriction = "[End] >= '{0}' AND [Start] <= '{1}'" -f $rangeStart.ToString('g'), $rangeEnd.ToString('g')
-    Write-Debug -Message $restriction
+
     $Array = @()
     foreach($item in $apptItems.Restrict($restriction))
-    {
-        $NewObject = New-Object  -TypeName PSObject -Property @{
-            Start                = $item.Start
-            Duration             = $item.Duration
-            End                  = $item.End
-            Subject              = $item.Subject
-            Body                 = $item.Body
-            ReminderSet          = $item.ReminderSet
-            Location             = $item.Location
-            Categories           = $item.Categories
-            CreationTime         = $item.CreationTime
-            LastModificationTime = $item.LastModificationTime
-            IsRecurring          = $item.IsRecurring
-            ConversationIndex    = $item.ConversationIndex
-            EntryID              = $item.EntryID
-            GlobalAppointmentID  = $item.GlobalAppointmentID
-        }
-        $Array += $NewObject
-    }
-    Write-Output -InputObject $Array
-    #$outlook = $session = $null
+    {  
+        $Props = @{}
+        $Props.Start                = $item.Start
+        $Props.Duration             = $item.Duration
+        $Props.End                  = $item.End
+        $Props.Subject              = $item.Subject
+        $Props.Body                 = $item.Body
+        $Props.ReminderSet          = $item.ReminderSet
+        $Props.Location             = $item.Location
+        $Props.Categories           = $item.Categories
+        $Props.CreationTime         = $item.CreationTime
+        $Props.LastModificationTime = $item.LastModificationTime
+        $Props.IsRecurring          = $item.IsRecurring
+        $Props.ConversationIndex    = $item.ConversationIndex
+        $Props.EntryID              = $item.EntryID
+        $Props.GlobalAppointmentID  = $item.GlobalAppointmentID
+
+        $Obj = New-Object -TypeName PsObject -Property $Props
+    }#foreach (item in apptitems)
+
+    $Array += $Obj 
+
+Write-Output -InputObject $Array
+
 }
+#>

@@ -1,4 +1,5 @@
-﻿#requires -Version 2
+﻿
+#requires -Version 2
 <#
         .Synopsis
         Builds an Outlook appointment or meeting from the powershell command line.
@@ -39,6 +40,7 @@
         $global:Outlook = New-Object -ComObject outlook.application 
         $global:Namespace = $Outlook.GetNamespace('MAPI')
 #>
+
 
 function New-Appointment 
 {
@@ -199,3 +201,4 @@ function New-Appointment
 }
 
 
+#>

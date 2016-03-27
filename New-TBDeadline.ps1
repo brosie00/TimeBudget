@@ -1,7 +1,6 @@
 ﻿#requires -Version 2
-<#
 
-#>
+
 function New-TBDeadline
 {
     [cmdletbinding(DefaultParameterSetName = 'End_Minutes' )]
@@ -63,7 +62,6 @@ function New-TBDeadline
     } 
  
     $CalendarComObject = $Namespace.Folders.Item($NamespaceFolderItemTitle).Folders | Where-Object -FilterScript { $_.Name -ieq $Calendar }
-      
     $objAppointment = $CalendarComObject.Items.Add($olAppointmentItem)
         
     #$objAppointment = $Outlook.CreateItem($olAppointmentItem) 
@@ -103,4 +101,4 @@ function New-TBDeadline
     {$objAppointment.Display($True)}
 }
 
-
+#>

@@ -1,4 +1,6 @@
-﻿function Add-TBCategories {
+﻿
+
+function Add-TBCategories {
 
 param 
 (
@@ -12,3 +14,4 @@ $Categories | foreach { $Namespace.Categories.Add($_) }
 
 }
 
+#>

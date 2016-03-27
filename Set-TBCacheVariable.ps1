@@ -1,4 +1,6 @@
-﻿function Set-TBCacheVariable
+﻿
+
+function Set-TBCacheVariable
 {  
     [cmdletbinding()]
 
@@ -17,3 +19,4 @@
         Write-Verbose -Message "$Time"
     }
 }
+#>
